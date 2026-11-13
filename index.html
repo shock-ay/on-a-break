@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>休憩中 - ストップウォッチ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Zen Maru Gothic & JetBrains Mono & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Zen Maru Gothic"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            }
+          }
+        },
+      },
+    };
+  </script>
+</head>
+<body class="min-h-screen w-full overflow-x-hidden relative flex flex-col items-center justify-between py-10 px-4 sm:px-6 text-white select-none bg-stone-900">
+
+  <!-- 背景画像とフォールバック・オーバーレイ -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <!-- フォールバック用の温かみのあるグラデーション背景 -->
+    <div class="absolute inset-0 bg-gradient-to-br from-amber-950 via-stone-900 to-emerald-950"></div>
+    
+    <!-- 休憩中をイメージしたコーヒーと木漏れ日の背景画像 -->
+    <img 
+      src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1920&q=80" 
+      alt="カフェでの休憩イメージ" 
+      class="w-full h-full object-cover object-center scale-105 transition-opacity duration-1000"
+      onerror="this.style.display='none';"
+    />
+    
+    <!-- 視認性を高めるためのダーク＆すりガラス風オーバーレイ -->
+    <div class="absolute inset-0 bg-stone-950/50 backdrop-blur-[3px]"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
+  </div>
+
+  <!-- 上部中央：「休憩中」ヘッダーセクション -->
+  <header class="w-full max-w-2xl flex flex-col items-center text-center mt-2 sm:mt-6 z-10 animate-float">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-amber-200 text-xs sm:text-sm font-medium tracking-widest mb-4 shadow-lg">
+      <!-- コーヒーカップのインラインSVGアイコン -->
+      <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 1v3M10 1v3M14 1v3" />
+      </svg>
+      <span>TAKE A BREATHER</span>
+    </div>
+
+    <div class="px-8 py-4 sm:px-12 sm:py-5 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+      <h1 class="text-5xl sm:text-6xl md:text-7xl font-black tracking-[0.2em] pl-[0.2em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
+        休憩中
+      </h1>
+    </div>
+    <p class="mt-3 text-sm sm:text-base text-stone-200/90 font-medium drop-shadow">
+      ゆっくり深呼吸して、心と体をリフレッシュしましょう
+    </p>
+  </header>
+
+  <!-- 中央：中くらいのサイズのストップウォッチカード -->
+  <main class="w-full max-w-md my-auto py-6 z-10">
+    <div class="w-full rounded-3xl bg-white/15 backdrop-blur-xl border border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.45)] p-6 sm:p-8 flex flex-col items-center transition-all duration-300">
+      
+      <!-- ステータスインジケーター -->
+      <div class="w-full flex items-center justify-between mb-4 px-1">
+        <span class="text-xs font-semibold uppercase tracking-wider text-stone-200/80 flex items-center gap-2">
+          <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-stone-400 transition-colors duration-300"></span>
+          <span id="status-text">待機中</span>
+        </span>
+        <span class="text-xs text-stone-300/75 font-mono">STOPWATCH</span>
+      </div>
+
+      <!-- 経過時間ディスプレイ -->
+      <div class="w-full rounded-2xl bg-black/30 border border-white/15 py-6 px-4 mb-6 flex items-baseline justify-center shadow-inner">
+        <div id="time-display" class="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-md tabular-nums">
+          00:00:00
+        </div>
+        <div id="ms-display" class="font-mono text-xl sm:text-2xl font-medium text-amber-300/90 ml-1 tabular-nums">
+          .00
+        </div>
+      </div>
+
+      <!-- 操作ボタン群（スタート / 一時停止 / リセット） -->
+      <div class="w-full grid grid-cols-2 gap-3 sm:gap-4">
+        <!-- スタート / 一時停止 トグルボタン -->
+        <button 
+          id="toggle-btn" 
+          type="button"
+          class="col-span-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-bold text-base sm:text-lg shadow-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-stone-900 bg-emerald-500 hover:bg-emerald-400 text-stone-950 focus:ring-emerald-400 cursor-pointer"
+        >
+          <!-- 再生アイコン -->
+          <svg id="icon-play" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <!-- 一時停止アイコン（初期非表示） -->
+          <svg id="icon-pause" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+          <span id="toggle-text">スタート</span>
+        </button>
+
+        <!-- リセットボタン -->
+        <button 
+          id="reset-btn" 
+          type="button"
+          disabled
+          class="col-span-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-bold text-base sm:text-lg shadow-lg border border-white/20 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+        >
+          <!-- リセットアイコン -->
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>リセット</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター：さりげないガイド表示 -->
+  <footer class="w-full text-center text-xs text-stone-300/70 pb-2 z-10">
+    <p>スペースキーで開始／一時停止・Rキーでリセットできます</p>
+  </footer>
+
+  <!-- ストップウォッチ制御スクリプト -->
+  <script>
+    (function () {
+      // DOM要素の取得
+      const timeDisplay = document.getElementById('time-display');
+      const msDisplay = document.getElementById('ms-display');
+      const toggleBtn = document.getElementById('toggle-btn');
+      const toggleText = document.getElementById('toggle-text');
+      const iconPlay = document.getElementById('icon-play');
+      const iconPause = document.getElementById('icon-pause');
+      const resetBtn = document.getElementById('reset-btn');
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+
+      // 状態管理変数（高精度タイマー performance.now() を使用してバックグラウンドでもズレを防止）
+      let isRunning = false;
+      let startTime = 0;
+      let elapsedTime = 0;
+      let animationFrameId = null;
+
+      /**
+       * ミリ秒を HH:MM:SS と .ms にフォーマットする関数
+       * @param {number} totalMs - 経過ミリ秒
+       */
+      function formatTime(totalMs) {
+        const totalSeconds = Math.floor(totalMs / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const centiseconds = Math.floor((totalMs % 1000) / 10);
+
+        const pad = (num) => String(num).padStart(2, '0');
+
+        return {
+          main: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`,
+          ms: `.${pad(centiseconds)}`
+        };
+      }
+
+      /**
+       * 画面表示を更新する関数
+       */
+      function updateDisplay() {
+        const currentElapsed = isRunning
+          ? elapsedTime + (performance.now() - startTime)
+          : elapsedTime;
+
+        const formatted = formatTime(currentElapsed);
+        timeDisplay.textContent = formatted.main;
+        msDisplay.textContent = formatted.ms;
+
+        if (isRunning) {
+          animationFrameId = requestAnimationFrame(updateDisplay);
+        }
+      }
+
+      /**
+       * UIの見た目（ボタンの色・アイコン・ステータス表示）を状態に合わせて更新
+       */
+      function updateControlsUI() {
+        if (isRunning) {
+          // 計測中 -> 「一時停止」ボタン表示
+          toggleText.textContent = '一時停止';
+          iconPlay.classList.add('hidden');
+          iconPause.classList.remove('hidden');
+
+          toggleBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-stone-950', 'focus:ring-emerald-400');
+          toggleBtn.classList.add('bg-amber-400', 'hover:bg-amber-300', 'text-stone-950', 'focus:ring-amber-300');
+
+          statusDot.classList.remove('bg-stone-400', 'bg-amber-400');
+          statusDot.classList.add('bg-emerald-400', 'animate-ping');
+          statusText.textContent = '休憩計測中...';
+
+          resetBtn.disabled = false;
+        } else {
+          // 停止中 -> 「スタート」ボタン表示
+          toggleText.textContent = 'スタート';
+          iconPause.classList.add('hidden');
+          iconPlay.classList.remove('hidden');
+
+          toggleBtn.classList.remove('bg-amber-400', 'hover:bg-amber-300', 'focus:ring-amber-300');
+          toggleBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-stone-950', 'focus:ring-emerald-400');
+
+          statusDot.classList.remove('bg-emerald-400', 'animate-ping');
+          if (elapsedTime > 0) {
+            statusDot.classList.add('bg-amber-400');
+            statusText.textContent = '一時停止中';
+            resetBtn.disabled = false;
+          } else {
+            statusDot.classList.remove('bg-amber-400');
+            statusDot.classList.add('bg-stone-400');
+            statusText.textContent = '待機中';
+            resetBtn.disabled = true;
+          }
+        }
+      }
+
+      /**
+       * スタート / 一時停止の切り替え
+       */
+      function toggleStopwatch() {
+        try {
+          if (!isRunning) {
+            // スタート処理
+            isRunning = true;
+            startTime = performance.now();
+            updateControlsUI();
+            animationFrameId = requestAnimationFrame(updateDisplay);
+          } else {
+            // 一時停止処理
+            isRunning = false;
+            elapsedTime += performance.now() - startTime;
+            if (animationFrameId) {
+              cancelAnimationFrame(animationFrameId);
+            }
+            updateDisplay();
+            updateControlsUI();
+          }
+        } catch (err) {
+          console.error('ストップウォッチの切り替え中にエラーが発生しました:', err);
+        }
+      }
+
+      /**
+       * リセット処理
+       */
+      function resetStopwatch() {
+        try {
+          isRunning = false;
+          startTime = 0;
+          elapsedTime = 0;
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+          }
+          updateDisplay();
+          updateControlsUI();
+        } catch (err) {
+          console.error('リセット処理中にエラーが発生しました:', err);
+        }
+      }
+
+      // イベントリスナー登録（クリック・タップ対応）
+      toggleBtn.addEventListener('click', toggleStopwatch);
+      resetBtn.addEventListener('click', resetStopwatch);
+
+      // キーボードショートカット対応（Spaceで開始/一時停止、Rでリセット）
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          toggleStopwatch();
+        } else if (e.key === 'r' || e.key === 'R') {
+          if (!resetBtn.disabled) {
+            resetStopwatch();
+          }
+        }
+      });
+
+      // 初期表示のセット
+      updateDisplay();
+      updateControlsUI();
+    })();
+  </script>
+</body>
+</html>
